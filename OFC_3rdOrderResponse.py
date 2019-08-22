@@ -71,10 +71,9 @@ class OFC_Response:
         :param params:
         :return:
         """
-
-        freq_points_pol3 = np.linspace(-params.N_comb * params.delta_freq, params.N_comb * params.delta_freq, params.N_comb + 1)[:, np.newaxis]
+        freq_points_pol3 = np.linspace(-params.N_comb * params.delta_freq, params.N_comb * params.delta_freq, 2*params.N_comb + 1)[:, np.newaxis]
         freq_points_comb = np.linspace(-params.N_comb * params.delta_freq, params.N_comb * params.delta_freq, 2*params.N_comb + 1)[:, np.newaxis]
-        resolution = np.linspace(-0.5 * params.delta_freq, 0.5 * params.delta_freq, params.N_res)
+        resolution = np.linspace(-0.01 * params.delta_freq, 0.01 * params.delta_freq, params.N_res)
 
         frequency_12 = 2 * params.omega_M2 - params.omega_M1 + freq_points_pol3 + resolution
         frequency_21 = 2 * params.omega_M1 - params.omega_M2 + freq_points_pol3 + resolution
@@ -82,7 +81,7 @@ class OFC_Response:
         field_freq1 = params.omega_M1 + freq_points_comb + resolution
         field_freq2 = params.omega_M2 + freq_points_comb + resolution
 
-        self.frequency = np.sort(np.hstack([frequency_12.flatten(), frequency_21.flatten()]))
+        self.frequency = np.sort(np.hstack([frequency_12.flatten(), frequency_21.flatten(), field_freq1.flatten(), field_freq2.flatten()]))
         self.freq_field1 = np.ascontiguousarray(field_freq1.flatten())
         self.freq_field2 = np.ascontiguousarray(field_freq2.flatten())
 
@@ -169,7 +168,7 @@ if __name__ == '__main__':
             for i in range(4):
                 gamma[n, m] += 0.5 * (gamma_decay[n, i] + gamma_decay[m, i])
 
-    energies = np.cumsum([0, 48, 500, 45]) * freq_unit
+    energies = np.cumsum([0, 78, 400, 45]) * freq_unit
 
     mu_value = 2.
     mu = mu_value * np.ones_like(gamma, dtype=np.complex)
@@ -177,12 +176,12 @@ if __name__ == '__main__':
 
     params = ADict(
         freq_unit=freq_unit,
-        N_comb=100,
-        N_res=51,
-        omega_M1=6e-1 * freq_unit,
-        omega_M2=2e-1 * freq_unit,
+        N_comb=1000,
+        N_res=11,
+        omega_M1=2e-2 * freq_unit,
+        omega_M2=6e-2 * freq_unit,
         gamma_comb=1e-12 * freq_unit,
-        delta_freq=1e-0 * freq_unit,
+        delta_freq=1e-1 * freq_unit,
         N_terms=5,
     )
 
@@ -203,10 +202,10 @@ if __name__ == '__main__':
 
     print(field1.size)
     fig, axes = plt.subplots(nrows=2, ncols=1, sharex=True)
-    axes[0].plot(response.frequency / params.delta_freq, -response.polarization.real, 'r', linewidth=1.)
-    axes[0].plot(response.freq_field1 / params.delta_freq, field1*response.polarization.real.max()/field1.max(), 'y', alpha=0.4)
+    axes[0].plot(response.frequency / params.delta_freq, -response.polarization.real, 'k*-', linewidth=1.)
+    axes[0].plot(response.freq_field1 / params.delta_freq, field1*response.polarization.real.max()/field1.max(), 'b', alpha=0.4)
     axes[0].plot(response.freq_field2 / params.delta_freq, field2*response.polarization.real.max()/field1.max(), 'g', alpha=0.4)
-    axes[1].plot(response.frequency / params.delta_freq, -response.polarization.imag, 'r', linewidth=1., alpha=0.7)
+    axes[1].plot(response.frequency / params.delta_freq, -response.polarization.imag, 'k', linewidth=1., alpha=0.7)
 
     print(time.time() - start)
     plt.show()
